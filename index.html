@@ -4,67 +4,81 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>임직원 제품 체험</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
+  :root {
+    --bg: #f4f6f5; --card: #ffffff; --text: #17201d; --muted: #6b7570; --line: #e1e6e3;
+    --accent: #1f6b55; --accent-weak: #e8f2ee; --danger: #d64545; --ok: #1f6b55; --star: #f2b01e;
+  }
   * { box-sizing: border-box; }
-  body { margin: 0; background: #f5f6f8; font-family: -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; color: #222; }
-  .wrap { max-width: 520px; margin: 0 auto; padding: 24px 16px 48px; }
-  h1 { font-size: 22px; margin: 0 0 4px; }
-  .sub { color: #666; font-size: 14px; margin-bottom: 18px; }
-  .tabs { display: flex; background: #e8e9ec; border-radius: 10px; padding: 4px; margin-bottom: 14px; }
-  .tabs button { flex: 1; border: 0; background: none; padding: 10px; font-size: 15px; font-weight: 600; color: #666; border-radius: 8px; cursor: pointer; }
-  .tabs button.on { background: #fff; color: #222; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
-  .card { background: #fff; border-radius: 12px; padding: 18px 16px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
-  .card-title { font-size: 15px; font-weight: 700; margin: 0 0 6px; }
-  label.f { display: block; font-size: 14px; font-weight: 600; margin: 14px 0 6px; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Pretendard', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 40px 16px 56px; }
+  .head { text-align: center; margin-bottom: 24px; }
+  .eyebrow { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .08em; color: var(--accent); background: var(--accent-weak); padding: 5px 10px; border-radius: 999px; margin-bottom: 12px; }
+  h1 { font-size: 26px; font-weight: 800; letter-spacing: -.02em; margin: 0 0 8px; }
+  .sub { color: var(--muted); font-size: 15px; margin: 0; line-height: 1.5; }
+  .tabs { display: flex; background: #e6ebe8; border-radius: 14px; padding: 4px; margin-bottom: 16px; }
+  .tabs button { flex: 1; border: 0; background: none; padding: 11px; font: inherit; font-size: 15px; font-weight: 600; color: var(--muted); border-radius: 11px; cursor: pointer; transition: .15s; }
+  .tabs button.on { background: var(--card); color: var(--text); box-shadow: 0 1px 3px rgba(23,32,29,.1); }
+  .card { background: var(--card); border-radius: 18px; padding: 24px 20px; margin-bottom: 14px; box-shadow: 0 1px 2px rgba(23,32,29,.04), 0 4px 16px rgba(23,32,29,.04); }
+  .card-title { font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+  label.f { display: block; font-size: 14px; font-weight: 600; margin: 20px 0 8px; }
   label.f:first-child { margin-top: 0; }
-  .req { color: #e5484d; }
-  input[type=text], input[type=password], textarea { width: 100%; padding: 11px 12px; border: 1px solid #d5d7db; border-radius: 8px; font-size: 16px; font-family: inherit; background: #fff; }
-  textarea { min-height: 160px; resize: vertical; }
-  .hint { font-size: 12px; color: #888; margin-top: 4px; }
-  .btn { width: 100%; padding: 14px; border: 0; border-radius: 10px; background: #222; color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 16px; }
-  .btn.ghost { background: #fff; color: #222; border: 1px solid #d5d7db; }
-  .btn:disabled { opacity: .5; }
-  .msg { font-size: 14px; margin-top: 12px; min-height: 18px; }
-  .msg.err { color: #e5484d; }
-  .msg.ok { color: #1a7f37; }
-  .notice { text-align: center; padding: 28px 8px; }
+  .req { color: var(--danger); }
+  input[type=text], textarea { width: 100%; padding: 13px 14px; border: 1px solid var(--line); border-radius: 12px; font: inherit; font-size: 16px; color: var(--text); background: #fbfcfb; transition: border-color .15s, box-shadow .15s, background .15s; }
+  input[type=text]:focus, textarea:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px var(--accent-weak); }
+  textarea { min-height: 170px; resize: vertical; line-height: 1.6; }
+  .hint { font-size: 13px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+  .btn { width: 100%; padding: 15px; border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 24px; transition: filter .15s; }
+  .btn:hover { filter: brightness(1.08); }
+  .btn.ghost { background: var(--card); color: var(--text); border: 1px solid var(--line); margin-top: 10px; }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .msg { font-size: 14px; margin-top: 12px; min-height: 18px; text-align: center; }
+  .msg.err { color: var(--danger); }
+  .msg.ok { color: var(--ok); font-weight: 600; }
+  .notice { text-align: center; padding: 24px 8px; }
   .notice .icon { font-size: 40px; }
-  .notice h2 { font-size: 18px; margin: 10px 0 6px; }
-  .notice p { color: #666; font-size: 14px; margin: 0; }
+  .notice h2 { font-size: 18px; margin: 12px 0 6px; }
+  .notice p { color: var(--muted); font-size: 14px; margin: 0; line-height: 1.5; }
   .options { display: flex; flex-direction: column; gap: 8px; }
   .options input { display: none; }
-  .options label { display: block; padding: 13px 14px; border: 1px solid #d5d7db; border-radius: 10px; font-size: 15px; cursor: pointer; }
-  .options input:checked + label { border-color: #222; background: #222; color: #fff; font-weight: 600; }
-  .item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 0; border-bottom: 1px solid #eee; }
+  .options label { display: flex; align-items: center; gap: 10px; padding: 15px 16px; border: 1.5px solid var(--line); border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: .15s; }
+  .options label::before { content: ''; width: 18px; height: 18px; border-radius: 50%; border: 2px solid #c4ccc8; flex: none; box-sizing: border-box; transition: .15s; }
+  .options input:checked + label { border-color: var(--accent); background: var(--accent-weak); }
+  .options input:checked + label::before { border: 5px solid var(--accent); }
+  .item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 0; border-bottom: 1px solid var(--line); }
   .item:last-child { border-bottom: 0; }
   .item .nm { font-size: 15px; font-weight: 600; }
-  .item .st { font-size: 12px; color: #888; margin-top: 2px; }
-  .item button { border: 0; background: #222; color: #fff; border-radius: 8px; padding: 9px 12px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-  .tag { display: inline-block; background: #222; color: #fff; font-size: 13px; padding: 4px 10px; border-radius: 12px; margin-bottom: 14px; }
+  .item .st { font-size: 13px; color: var(--muted); margin-top: 3px; }
+  .item button { border: 0; background: var(--accent); color: #fff; border-radius: 10px; padding: 10px 14px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .tag { display: block; text-align: center; color: var(--accent); font-size: 15px; font-weight: 700; margin-bottom: 14px; }
   .stars { display: inline-flex; flex-direction: row-reverse; }
   .stars input { display: none; }
-  .stars label { font-size: 34px; color: #d9d9d9; cursor: pointer; padding: 0 2px; line-height: 1; }
-  .stars input:checked ~ label, .stars label:hover, .stars label:hover ~ label { color: #f5a623; }
-  .count { float: right; font-weight: 400; color: #888; font-size: 12px; }
-  .drop { display: block; border: 2px dashed #c5c8cd; border-radius: 12px; padding: 22px 12px; text-align: center; cursor: pointer; background: #fafbfc; }
-  .drop.over { border-color: #222; background: #f0f1f3; }
+  .stars label { font-size: 36px; color: #dde3e0; cursor: pointer; padding: 0 2px; line-height: 1; transition: color .1s; }
+  .stars input:checked ~ label, .stars label:hover, .stars label:hover ~ label { color: var(--star); }
+  .count { float: right; font-weight: 400; color: var(--muted); font-size: 12px; }
+  .drop { display: block; border: 1.5px dashed #c4ccc8; border-radius: 14px; padding: 24px 12px; text-align: center; cursor: pointer; background: #fbfcfb; transition: .15s; }
+  .drop.over { border-color: var(--accent); background: var(--accent-weak); }
   .drop.full { opacity: .5; cursor: default; }
   .drop .big { font-size: 28px; line-height: 1; }
-  .drop .t { font-size: 15px; font-weight: 600; margin-top: 6px; }
-  .drop .s { font-size: 12px; color: #888; margin-top: 4px; }
+  .drop .t { font-size: 15px; font-weight: 600; margin-top: 8px; }
+  .drop .s { font-size: 13px; color: var(--muted); margin-top: 4px; }
   .drop input { display: none; }
-  .thumbs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+  .thumbs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
   .thumb { position: relative; aspect-ratio: 1; }
-  .thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; display: block; }
-  .thumb .x { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; background: #222; color: #fff; font-size: 13px; line-height: 22px; cursor: pointer; }
-  .thumb.loading { background: #eee; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #888; }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; display: block; }
+  .thumb .x { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; background: var(--text); color: #fff; font-size: 12px; line-height: 22px; cursor: pointer; }
+  .thumb.loading { background: #edf1ef; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--muted); }
   .hidden { display: none !important; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>임직원 제품 체험</h1>
-  <div class="sub">제품을 신청하고, 받은 뒤 사용 후기를 남겨 주세요.</div>
+  <header class="head">
+    <div class="eyebrow">PHARMABROS</div>
+    <h1>임직원 제품 체험</h1>
+    <p class="sub">제품을 신청하고, 받은 뒤 사용 후기를 남겨 주세요.</p>
+  </header>
 
   <div class="tabs">
     <button type="button" id="tabApply" class="on" onclick="showTab('apply')">제품 신청</button>
@@ -83,9 +97,7 @@
       <input type="text" id="applyName" autocomplete="name">
       <label class="f">쇼핑몰 ID <span class="req">*</span></label>
       <input type="text" id="applyUserId" autocapitalize="off" autocomplete="username">
-      <div class="hint">자사몰 회원 아이디 (리뷰가 이 아이디로 등록돼요)</div>
-      <label class="f">부서</label>
-      <input type="text" id="applyDept">
+      <div class="hint">리뷰 작성자로 표시되는 정보예요. 리뷰 작성할 때도 같은 이름과 ID로 조회해요.</div>
       <button class="btn" type="button" id="applyBtn" onclick="submitApply()">신청하기</button>
       <div class="msg" id="applyMsg"></div>
     </div>
@@ -239,7 +251,7 @@
     busy(btn, true, '신청 중...');
     setMsg('applyMsg', '');
     try {
-      const d = await api('apply', { product: picked.value, name: name, userId: userId, dept: $('applyDept').value.trim() });
+      const d = await api('apply', { product: picked.value, name: name, userId: userId });
       rememberWho(name, userId);
       setMsg('applyMsg', d.message, true);
     } catch (e) {

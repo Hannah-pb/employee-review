@@ -28,6 +28,7 @@
   input[type=text], textarea { width: 100%; padding: 13px 14px; border: 1px solid var(--line); border-radius: 12px; font: inherit; font-size: 16px; color: var(--text); background: #fbfcfb; transition: border-color .15s, box-shadow .15s, background .15s; }
   input[type=text]:focus, textarea:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px var(--accent-weak); }
   textarea { min-height: 170px; resize: vertical; line-height: 1.6; }
+  .group-title { font-size: 13px; font-weight: 700; color: var(--accent); margin: 28px 0 -8px; padding-top: 20px; border-top: 1px solid var(--line); }
   .hint { font-size: 13px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
   .btn { width: 100%; padding: 15px; border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 24px; transition: filter .15s; }
   .btn:hover { filter: brightness(1.08); }
@@ -76,8 +77,8 @@
 <div class="wrap">
   <header class="head">
     <div class="eyebrow">PHARMABROS</div>
-    <h1>임직원 제품 체험</h1>
-    <p class="sub">제품을 신청하고, 받은 뒤 사용 후기를 남겨 주세요.</p>
+    <h1>오늘의 체험 제품은?</h1>
+    <p class="sub">궁금했던 제품, 직접 경험하고 솔직한 후기를 남겨주세요.</p>
   </header>
 
   <div class="tabs">
@@ -93,11 +94,15 @@
     <div class="card hidden" id="applyForm">
       <label class="f">신청할 상품 <span class="req">*</span></label>
       <div class="options" id="productOptions"></div>
-      <label class="f">이름 <span class="req">*</span></label>
+      <label class="f">이름 (실명) <span class="req">*</span></label>
       <input type="text" id="applyName" autocomplete="name">
-      <label class="f">쇼핑몰 ID <span class="req">*</span></label>
-      <input type="text" id="applyUserId" autocapitalize="off" autocomplete="username">
-      <div class="hint">리뷰 작성자로 표시되는 정보예요. 리뷰 작성할 때도 같은 이름과 ID로 조회해요.</div>
+      <div class="hint">관리용이에요. 리뷰에는 표시되지 않고, 리뷰 작성할 때 이 이름으로 조회해요.</div>
+      <div class="group-title">리뷰에 표시될 정보</div>
+      <label class="f">리뷰 이름 <span class="req">*</span></label>
+      <input type="text" id="applyReviewName" autocomplete="off">
+      <label class="f">리뷰 ID <span class="req">*</span></label>
+      <input type="text" id="applyReviewId" autocapitalize="off" autocomplete="off">
+      <div class="hint">리뷰 작성자로 표시되는 이름과 ID예요.</div>
       <button class="btn" type="button" id="applyBtn" onclick="submitApply()">신청하기</button>
       <div class="msg" id="applyMsg"></div>
     </div>
@@ -106,10 +111,9 @@
   <!-- 리뷰 -->
   <section id="reviewView" class="hidden">
     <div class="card" id="whoCard">
-      <label class="f">이름 <span class="req">*</span></label>
+      <label class="f">이름 (실명) <span class="req">*</span></label>
       <input type="text" id="revName" autocomplete="name">
-      <label class="f">쇼핑몰 ID <span class="req">*</span></label>
-      <input type="text" id="revUserId" autocapitalize="off" autocomplete="username">
+      <div class="hint">신청할 때 입력한 실명으로 조회해요.</div>
       <button class="btn" type="button" id="checkBtn" onclick="loadList()">내 신청 내역 보기</button>
       <div class="msg" id="checkMsg"></div>
     </div>
@@ -203,17 +207,14 @@
     show('reviewView', tab === 'review');
   }
 
-  function rememberWho(name, userId) {
+  function rememberWho(name) {
     store('erv_name', name);
-    store('erv_uid', userId);
     ['applyName', 'revName'].forEach(function (id) { if (!$(id).value) $(id).value = name; });
-    ['applyUserId', 'revUserId'].forEach(function (id) { if (!$(id).value) $(id).value = userId; });
   }
 
   // ---------- 초기 로딩 ----------
   (function init() {
     $('applyName').value = $('revName').value = store('erv_name');
-    $('applyUserId').value = $('revUserId').value = store('erv_uid');
 
     for (let v = 5; v >= 1; v--) {
       $('score').insertAdjacentHTML('beforeend',
@@ -244,15 +245,17 @@
   async function submitApply() {
     const picked = document.querySelector('input[name=product]:checked');
     const name = $('applyName').value.trim();
-    const userId = $('applyUserId').value.trim();
+    const reviewName = $('applyReviewName').value.trim();
+    const reviewId = $('applyReviewId').value.trim();
     if (!picked) return setMsg('applyMsg', '신청할 상품을 선택해 주세요.');
-    if (!name || !userId) return setMsg('applyMsg', '이름과 쇼핑몰 ID를 입력해 주세요.');
+    if (!name) return setMsg('applyMsg', '이름(실명)을 입력해 주세요.');
+    if (!reviewName || !reviewId) return setMsg('applyMsg', '리뷰에 표시될 이름과 ID를 입력해 주세요.');
     const btn = $('applyBtn');
     busy(btn, true, '신청 중...');
     setMsg('applyMsg', '');
     try {
-      const d = await api('apply', { product: picked.value, name: name, userId: userId });
-      rememberWho(name, userId);
+      const d = await api('apply', { product: picked.value, name: name, reviewName: reviewName, reviewId: reviewId });
+      rememberWho(name);
       setMsg('applyMsg', d.message, true);
     } catch (e) {
       setMsg('applyMsg', e.message);
@@ -264,25 +267,23 @@
   const STATUS_TEXT = {
     '신청': '제품 지급 전이에요',
     '지급완료': '제품을 받으셨어요. 리뷰를 남겨 주세요!',
-    '리뷰완료': '리뷰 작성 완료',
   };
 
   async function loadList() {
     const name = $('revName').value.trim();
-    const userId = $('revUserId').value.trim();
-    if (!name || !userId) return setMsg('checkMsg', '이름과 쇼핑몰 ID를 입력해 주세요.');
+    if (!name) return setMsg('checkMsg', '이름(실명)을 입력해 주세요.');
     const btn = $('checkBtn');
     busy(btn, true, '조회 중...');
     setMsg('checkMsg', '');
     try {
-      const d = await api('status', { name: name, userId: userId });
-      rememberWho(name, userId);
+      const d = await api('status', { name: name });
+      rememberWho(name);
       $('appList').innerHTML = d.items.length ? d.items.map(function (it, i) {
         return '<div class="item"><div><div class="nm">' + escapeHtml(it.product) + '</div>' +
           '<div class="st">' + escapeHtml(STATUS_TEXT[it.status] || it.status) + '</div></div>' +
           (it.status === '지급완료' ? '<button type="button" data-i="' + i + '">리뷰 쓰기</button>' : '') + '</div>';
-      }).join('') : '<div class="notice"><div class="icon">🔍</div><h2>신청 내역이 없어요</h2>' +
-        '<p>이름과 쇼핑몰 ID를 신청할 때와 똑같이 입력했는지 확인해 주세요.</p></div>';
+      }).join('') : '<div class="notice"><div class="icon">🔍</div><h2>작성할 리뷰가 없어요</h2>' +
+        '<p>신청할 때 입력한 실명과 같은지 확인해 주세요.<br>리뷰를 이미 작성한 상품은 목록에 나오지 않아요.</p></div>';
       $('appList').querySelectorAll('button[data-i]').forEach(function (b) {
         b.onclick = function () { openReview(d.items[Number(b.dataset.i)].product); };
       });
@@ -403,7 +404,6 @@
       await api('review', {
         product: reviewTarget,
         name: $('revName').value.trim(),
-        userId: $('revUserId').value.trim(),
         score: Number(scoreEl.value),
         message: message,
         photos: photoData,

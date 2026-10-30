@@ -66,12 +66,6 @@
   <h1>임직원 제품 체험</h1>
   <div class="sub">제품을 신청하고, 받은 뒤 사용 후기를 남겨 주세요.</div>
 
-  <div class="card hidden" id="codeCard">
-    <label class="f">접근코드 <span class="req">*</span></label>
-    <input type="password" id="code" placeholder="공지받은 접근코드">
-    <div class="hint">한 번 입력하면 이 기기에서 기억해요.</div>
-  </div>
-
   <div class="tabs">
     <button type="button" id="tabApply" class="on" onclick="showTab('apply')">제품 신청</button>
     <button type="button" id="tabReview" onclick="showTab('review')">리뷰 작성</button>
@@ -165,11 +159,10 @@
   }
 
   async function api(action, data) {
-    const body = Object.assign({ action: action, code: $('code').value.trim() }, data || {});
+    const body = Object.assign({ action: action }, data || {});
     const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(body) });
     const json = await res.json();
     if (!json.ok) throw new Error(json.error || '오류가 발생했어요.');
-    if (body.code) store('erv_code', body.code);
     return json;
   }
 
@@ -207,7 +200,6 @@
 
   // ---------- 초기 로딩 ----------
   (function init() {
-    $('code').value = store('erv_code');
     $('applyName').value = $('revName').value = store('erv_name');
     $('applyUserId').value = $('revUserId').value = store('erv_uid');
 
@@ -219,7 +211,6 @@
     $('message').addEventListener('input', function () { $('msgCount').textContent = this.value.trim().length + '자'; });
 
     api('info').then(function (d) {
-      show('codeCard', d.needCode);
       if (!d.products.length) {
         $('closedTitle').textContent = '지금은 신청 중인 상품이 없어요';
         $('closedText').textContent = '제품을 이미 받으셨다면 리뷰 작성 탭을 이용해 주세요.';

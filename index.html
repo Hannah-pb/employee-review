@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>임직원 제품 체험</title>
+<title>오늘의 체험 제품</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
   :root {
     --bg: #f4f6f5; --card: #ffffff; --text: #17201d; --muted: #6b7570; --line: #e1e6e3;
-    --accent: #1f6b55; --accent-weak: #e8f2ee; --danger: #d64545; --ok: #1f6b55; --star: #f2b01e;
+    --accent: #1f6b55; --accent-weak: #e8f2ee; --danger: #d64545; --warn: #8a6100; --warn-weak: #fdf3d6;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Pretendard', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; -webkit-font-smoothing: antialiased; }
@@ -21,43 +21,57 @@
   .tabs button { flex: 1; border: 0; background: none; padding: 11px; font: inherit; font-size: 15px; font-weight: 600; color: var(--muted); border-radius: 11px; cursor: pointer; transition: .15s; }
   .tabs button.on { background: var(--card); color: var(--text); box-shadow: 0 1px 3px rgba(23,32,29,.1); }
   .card { background: var(--card); border-radius: 18px; padding: 24px 20px; margin-bottom: 14px; box-shadow: 0 1px 2px rgba(23,32,29,.04), 0 4px 16px rgba(23,32,29,.04); }
-  .card-title { font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+  .card-title { font-size: 16px; font-weight: 700; margin: 0 0 4px; }
   label.f { display: block; font-size: 14px; font-weight: 600; margin: 20px 0 8px; }
   label.f:first-child { margin-top: 0; }
   .req { color: var(--danger); }
-  input[type=text], textarea { width: 100%; padding: 13px 14px; border: 1px solid var(--line); border-radius: 12px; font: inherit; font-size: 16px; color: var(--text); background: #fbfcfb; transition: border-color .15s, box-shadow .15s, background .15s; }
-  input[type=text]:focus, textarea:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px var(--accent-weak); }
-  textarea { min-height: 170px; resize: vertical; line-height: 1.6; }
-  .group-title { font-size: 13px; font-weight: 700; color: var(--accent); margin: 28px 0 -8px; padding-top: 20px; border-top: 1px solid var(--line); }
+  input[type=text], input[type=date] { width: 100%; padding: 13px 14px; border: 1px solid var(--line); border-radius: 12px; font: inherit; font-size: 16px; color: var(--text); background: #fbfcfb; transition: border-color .15s, box-shadow .15s, background .15s; }
+  input[type=text]:focus, input[type=date]:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px var(--accent-weak); }
   .hint { font-size: 13px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
-  .btn { width: 100%; padding: 15px; border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 24px; transition: filter .15s; }
+  .btn { display: block; width: 100%; padding: 15px; border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: inherit; font-size: 16px; font-weight: 700; text-align: center; text-decoration: none; cursor: pointer; margin-top: 24px; transition: filter .15s; }
   .btn:hover { filter: brightness(1.08); }
   .btn.ghost { background: var(--card); color: var(--text); border: 1px solid var(--line); margin-top: 10px; }
   .btn:disabled { opacity: .5; cursor: default; }
-  .msg { font-size: 14px; margin-top: 12px; min-height: 18px; text-align: center; }
+  .msg { font-size: 14px; margin-top: 12px; min-height: 18px; text-align: center; line-height: 1.5; }
   .msg.err { color: var(--danger); }
-  .msg.ok { color: var(--ok); font-weight: 600; }
+  .msg.ok { color: var(--accent); font-weight: 600; }
   .notice { text-align: center; padding: 24px 8px; }
   .notice .icon { font-size: 40px; }
   .notice h2 { font-size: 18px; margin: 12px 0 6px; }
   .notice p { color: var(--muted); font-size: 14px; margin: 0; line-height: 1.5; }
+
+  /* 상품 선택 */
   .options { display: flex; flex-direction: column; gap: 8px; }
   .options input { display: none; }
-  .options label { display: flex; align-items: center; gap: 10px; padding: 15px 16px; border: 1.5px solid var(--line); border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: .15s; }
+  .options label { display: flex; align-items: center; gap: 12px; padding: 15px 16px; border: 1.5px solid var(--line); border-radius: 12px; cursor: pointer; transition: .15s; }
   .options label::before { content: ''; width: 18px; height: 18px; border-radius: 50%; border: 2px solid #c4ccc8; flex: none; box-sizing: border-box; transition: .15s; }
   .options input:checked + label { border-color: var(--accent); background: var(--accent-weak); }
   .options input:checked + label::before { border: 5px solid var(--accent); }
-  .item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 0; border-bottom: 1px solid var(--line); }
-  .item:last-child { border-bottom: 0; }
-  .item .nm { font-size: 15px; font-weight: 600; }
-  .item .st { font-size: 13px; color: var(--muted); margin-top: 3px; }
-  .item button { border: 0; background: var(--accent); color: #fff; border-radius: 10px; padding: 10px 14px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
-  .tag { display: block; text-align: center; color: var(--accent); font-size: 15px; font-weight: 700; margin-bottom: 14px; }
-  .stars { display: inline-flex; flex-direction: row-reverse; }
-  .stars input { display: none; }
-  .stars label { font-size: 36px; color: #dde3e0; cursor: pointer; padding: 0 2px; line-height: 1; transition: color .1s; }
-  .stars input:checked ~ label, .stars label:hover, .stars label:hover ~ label { color: var(--star); }
-  .count { float: right; font-weight: 400; color: var(--muted); font-size: 12px; }
+  .opt-name { font-size: 15px; font-weight: 600; }
+  .opt-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .opt-sub.full { color: var(--warn); }
+
+  /* 내 신청 내역 */
+  .app { border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-top: 12px; }
+  .app-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .app-name { font-size: 16px; font-weight: 700; }
+  .badge { font-size: 12px; font-weight: 700; padding: 4px 9px; border-radius: 999px; white-space: nowrap; }
+  .badge.ok { color: var(--accent); background: var(--accent-weak); }
+  .badge.wait { color: var(--warn); background: var(--warn-weak); }
+  .buy { display: inline-block; margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--accent); text-decoration: none; }
+  .steps { margin-top: 12px; border-top: 1px solid var(--line); }
+  .step { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 0 0; }
+  .step-label { font-size: 14px; font-weight: 600; }
+  .step-state { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .step-state.done { color: var(--accent); font-weight: 600; }
+  .step button { border: 0; background: var(--accent); color: #fff; border-radius: 10px; padding: 9px 14px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .step button.again { background: var(--card); color: var(--muted); border: 1px solid var(--line); font-weight: 600; }
+  .wait-text { font-size: 13px; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+
+  /* 업로드 */
+  .tag { text-align: center; margin-bottom: 14px; }
+  .tag b { display: block; font-size: 18px; }
+  .tag span { font-size: 14px; color: var(--accent); font-weight: 700; }
   .drop { display: block; border: 1.5px dashed #c4ccc8; border-radius: 14px; padding: 24px 12px; text-align: center; cursor: pointer; background: #fbfcfb; transition: .15s; }
   .drop.over { border-color: var(--accent); background: var(--accent-weak); }
   .drop.full { opacity: .5; cursor: default; }
@@ -65,7 +79,7 @@
   .drop .t { font-size: 15px; font-weight: 600; margin-top: 8px; }
   .drop .s { font-size: 13px; color: var(--muted); margin-top: 4px; }
   .drop input { display: none; }
-  .thumbs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+  .thumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
   .thumb { position: relative; aspect-ratio: 1; }
   .thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; display: block; }
   .thumb .x { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; background: var(--text); color: #fff; font-size: 12px; line-height: 22px; cursor: pointer; }
@@ -83,7 +97,7 @@
 
   <div class="tabs">
     <button type="button" id="tabApply" class="on" onclick="showTab('apply')">제품 신청</button>
-    <button type="button" id="tabReview" onclick="showTab('review')">리뷰 작성</button>
+    <button type="button" id="tabSubmit" onclick="showTab('submit')">리뷰·영수증 제출</button>
   </div>
 
   <!-- 신청 -->
@@ -96,23 +110,17 @@
       <div class="options" id="productOptions"></div>
       <label class="f">이름 (실명) <span class="req">*</span></label>
       <input type="text" id="applyName" autocomplete="name">
-      <div class="hint">관리용이에요. 리뷰에는 표시되지 않고, 리뷰 작성할 때 이 이름으로 조회해요.</div>
-      <div class="group-title">리뷰에 표시될 정보</div>
-      <label class="f">리뷰 이름 <span class="req">*</span></label>
-      <input type="text" id="applyReviewName" autocomplete="off">
-      <label class="f">리뷰 ID <span class="req">*</span></label>
-      <input type="text" id="applyReviewId" autocapitalize="off" autocomplete="off">
-      <div class="hint">리뷰 작성자로 표시되는 이름과 ID예요.</div>
+      <div class="hint">선착순 안에 들면 바로 <b>신청완료</b>가 되고, 마감 후 신청은 대기로 접수돼요.</div>
       <button class="btn" type="button" id="applyBtn" onclick="submitApply()">신청하기</button>
       <div class="msg" id="applyMsg"></div>
     </div>
   </section>
 
-  <!-- 리뷰 -->
-  <section id="reviewView" class="hidden">
+  <!-- 제출 -->
+  <section id="submitView" class="hidden">
     <div class="card" id="whoCard">
       <label class="f">이름 (실명) <span class="req">*</span></label>
-      <input type="text" id="revName" autocomplete="name">
+      <input type="text" id="whoName" autocomplete="name">
       <div class="hint">신청할 때 입력한 실명으로 조회해요.</div>
       <button class="btn" type="button" id="checkBtn" onclick="loadList()">내 신청 내역 보기</button>
       <div class="msg" id="checkMsg"></div>
@@ -120,36 +128,31 @@
 
     <div class="card hidden" id="listCard">
       <div class="card-title">내 신청 내역</div>
+      <div class="hint" style="margin-top:0">리뷰 캡처와 영수증은 순서 상관없이 제출할 수 있어요.</div>
       <div id="appList"></div>
       <button class="btn ghost" type="button" onclick="backToWho()">다른 이름으로 조회</button>
     </div>
 
-    <div class="card hidden" id="doneCard">
-      <div class="notice"><div class="icon">🙌</div><h2>리뷰 제출 완료!</h2><p>소중한 후기 감사합니다.</p></div>
-      <button class="btn ghost" type="button" onclick="loadList()">내 신청 내역으로</button>
-    </div>
-
-    <div class="hidden" id="reviewForm">
-      <div class="tag" id="reviewProduct"></div>
+    <div class="hidden" id="uploadForm">
       <div class="card">
-        <label class="f">별점 <span class="req">*</span></label>
-        <div class="stars" id="score"></div>
-        <label class="f">리뷰 내용 <span class="req">*</span> <span class="count" id="msgCount">0자</span></label>
-        <textarea id="message" placeholder="제품을 사용해 본 솔직한 후기를 적어 주세요 (20자 이상)"></textarea>
-      </div>
-      <div class="card">
-        <label class="f">사진 (선택)</label>
+        <div class="tag"><b id="upProduct"></b><span id="upKind"></span></div>
+        <div class="hint" id="upGuide" style="text-align:center;margin:0 0 20px"></div>
+        <div id="buyDateWrap">
+          <label class="f">구매일 <span class="req">*</span></label>
+          <input type="date" id="buyDate">
+        </div>
+        <label class="f">이미지 <span class="req">*</span></label>
         <label class="drop" id="drop">
-          <input type="file" id="photos" accept="image/*" multiple>
+          <input type="file" id="files" accept="image/*" multiple>
           <div class="big">📷</div>
-          <div class="t">사진 추가 (<span id="photoCount">0</span>/4)</div>
+          <div class="t">이미지 추가 (<span id="fileCount">0</span>/3)</div>
           <div class="s">탭해서 촬영·앨범 선택 / PC는 끌어다 놓기</div>
         </label>
         <div class="thumbs" id="thumbs"></div>
+        <button class="btn" type="button" id="uploadBtn" onclick="submitUpload()">제출하기</button>
+        <button class="btn ghost" type="button" onclick="loadList()">목록으로</button>
+        <div class="msg" id="uploadMsg"></div>
       </div>
-      <button class="btn" type="button" id="reviewBtn" onclick="submitReview()">리뷰 제출</button>
-      <button class="btn ghost" type="button" onclick="loadList()">목록으로</button>
-      <div class="msg" id="reviewMsg"></div>
     </div>
   </section>
 </div>
@@ -157,12 +160,15 @@
 <script>
   // Apps Script 웹 앱 배포 URL
   const API_URL = 'https://script.google.com/macros/s/AKfycbx858_nPeecvyNvWzOtk3nafQDAOecitgTd-gkgKdVJc5x3QRLHUs-Jye9bHGhuZ0E/exec';
-  const MAX_PHOTOS = 4;
-  const MIN_MESSAGE = 20;
+  const MAX_FILES = 3;
+  const KINDS = {
+    review: { label: '리뷰 캡처', guide: '스마트스토어에 작성한 내 리뷰가 보이도록 캡처해서 올려 주세요.' },
+    receipt: { label: '영수증', guide: '주문 상세(결제 내역) 화면 캡처나 영수증 사진을 올려 주세요.' },
+  };
 
-  let reviewTarget = '';
-  let photoData = [];
-  let photosLoading = 0;
+  let target = null; // { product, kind }
+  let fileData = [];
+  let filesLoading = 0;
 
   // ---------- 공통 ----------
   const $ = function (id) { return document.getElementById(id); };
@@ -175,8 +181,7 @@
   }
 
   async function api(action, data) {
-    const body = Object.assign({ action: action }, data || {});
-    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(body) });
+    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(Object.assign({ action: action }, data || {})) });
     const json = await res.json();
     if (!json.ok) throw new Error(json.error || '오류가 발생했어요.');
     return json;
@@ -200,38 +205,41 @@
     });
   }
 
+  function safeUrl(u) { return /^https?:\/\//.test(u) ? u : ''; }
+
   function showTab(tab) {
     $('tabApply').classList.toggle('on', tab === 'apply');
-    $('tabReview').classList.toggle('on', tab === 'review');
+    $('tabSubmit').classList.toggle('on', tab === 'submit');
     show('applyView', tab === 'apply');
-    show('reviewView', tab === 'review');
+    show('submitView', tab === 'submit');
   }
 
-  function rememberWho(name) {
+  function rememberName(name) {
     store('erv_name', name);
-    ['applyName', 'revName'].forEach(function (id) { if (!$(id).value) $(id).value = name; });
+    ['applyName', 'whoName'].forEach(function (id) { if (!$(id).value) $(id).value = name; });
+  }
+
+  function today() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
 
   // ---------- 초기 로딩 ----------
   (function init() {
-    $('applyName').value = $('revName').value = store('erv_name');
-
-    for (let v = 5; v >= 1; v--) {
-      $('score').insertAdjacentHTML('beforeend',
-        '<input type="radio" id="s' + v + '" name="score" value="' + v + '"' + (v === 5 ? ' checked' : '') + '>' +
-        '<label for="s' + v + '">★</label>');
-    }
-    $('message').addEventListener('input', function () { $('msgCount').textContent = this.value.trim().length + '자'; });
+    $('applyName').value = $('whoName').value = store('erv_name');
 
     api('info').then(function (d) {
       if (!d.products.length) {
         $('closedTitle').textContent = '지금은 신청 중인 상품이 없어요';
-        $('closedText').textContent = '제품을 이미 받으셨다면 리뷰 작성 탭을 이용해 주세요.';
+        $('closedText').textContent = '이미 신청하셨다면 리뷰·영수증 제출 탭을 이용해 주세요.';
         return;
       }
       $('productOptions').innerHTML = d.products.map(function (p, i) {
-        return '<input type="radio" name="product" id="p' + i + '" value="' + escapeHtml(p) + '"' + (d.products.length === 1 ? ' checked' : '') + '>' +
-          '<label for="p' + i + '">' + escapeHtml(p) + '</label>';
+        const sub = p.remaining == null ? '선착순 모집 중'
+          : p.remaining > 0 ? '남은 자리 ' + p.remaining + '명' : '선착순 마감 · 대기 신청 가능';
+        return '<input type="radio" name="product" id="p' + i + '" value="' + escapeHtml(p.name) + '"' + (d.products.length === 1 ? ' checked' : '') + '>' +
+          '<label for="p' + i + '"><div><div class="opt-name">' + escapeHtml(p.name) + '</div>' +
+          '<div class="opt-sub' + (p.remaining === 0 ? ' full' : '') + '">' + sub + '</div></div></label>';
       }).join('');
       show('applyClosed', false);
       show('applyForm', true);
@@ -245,17 +253,14 @@
   async function submitApply() {
     const picked = document.querySelector('input[name=product]:checked');
     const name = $('applyName').value.trim();
-    const reviewName = $('applyReviewName').value.trim();
-    const reviewId = $('applyReviewId').value.trim();
     if (!picked) return setMsg('applyMsg', '신청할 상품을 선택해 주세요.');
     if (!name) return setMsg('applyMsg', '이름(실명)을 입력해 주세요.');
-    if (!reviewName || !reviewId) return setMsg('applyMsg', '리뷰에 표시될 이름과 ID를 입력해 주세요.');
     const btn = $('applyBtn');
     busy(btn, true, '신청 중...');
     setMsg('applyMsg', '');
     try {
-      const d = await api('apply', { product: picked.value, name: name, reviewName: reviewName, reviewId: reviewId });
-      rememberWho(name);
+      const d = await api('apply', { product: picked.value, name: name });
+      rememberName(name);
       setMsg('applyMsg', d.message, true);
     } catch (e) {
       setMsg('applyMsg', e.message);
@@ -263,38 +268,63 @@
     busy(btn, false, '신청하기');
   }
 
-  // ---------- 리뷰: 내 신청 내역 ----------
-  const STATUS_TEXT = {
-    '신청': '제품 지급 전이에요',
-    '지급완료': '제품을 받으셨어요. 리뷰를 남겨 주세요!',
-  };
+  // ---------- 내 신청 내역 ----------
+  let items = [];
 
   async function loadList() {
-    const name = $('revName').value.trim();
+    const name = $('whoName').value.trim();
     if (!name) return setMsg('checkMsg', '이름(실명)을 입력해 주세요.');
     const btn = $('checkBtn');
     busy(btn, true, '조회 중...');
     setMsg('checkMsg', '');
     try {
       const d = await api('status', { name: name });
-      rememberWho(name);
-      $('appList').innerHTML = d.items.length ? d.items.map(function (it, i) {
-        return '<div class="item"><div><div class="nm">' + escapeHtml(it.product) + '</div>' +
-          '<div class="st">' + escapeHtml(STATUS_TEXT[it.status] || it.status) + '</div></div>' +
-          (it.status === '지급완료' ? '<button type="button" data-i="' + i + '">리뷰 쓰기</button>' : '') + '</div>';
-      }).join('') : '<div class="notice"><div class="icon">🔍</div><h2>작성할 리뷰가 없어요</h2>' +
-        '<p>신청할 때 입력한 실명과 같은지 확인해 주세요.<br>리뷰를 이미 작성한 상품은 목록에 나오지 않아요.</p></div>';
-      $('appList').querySelectorAll('button[data-i]').forEach(function (b) {
-        b.onclick = function () { openReview(d.items[Number(b.dataset.i)].product); };
-      });
-      ['whoCard', 'doneCard', 'reviewForm'].forEach(function (id) { show(id, false); });
+      rememberName(name);
+      items = d.items;
+      renderList();
+      ['whoCard', 'uploadForm'].forEach(function (id) { show(id, false); });
       show('listCard', true);
+      window.scrollTo(0, 0);
     } catch (e) {
       setMsg('checkMsg', e.message);
-      ['listCard', 'doneCard', 'reviewForm'].forEach(function (id) { show(id, false); });
+      ['listCard', 'uploadForm'].forEach(function (id) { show(id, false); });
       show('whoCard', true);
     }
     busy(btn, false, '내 신청 내역 보기');
+  }
+
+  function renderList() {
+    if (!items.length) {
+      $('appList').innerHTML = '<div class="notice"><div class="icon">🔍</div><h2>신청 내역이 없어요</h2>' +
+        '<p>신청할 때 입력한 실명과 같은지 확인해 주세요.</p></div>';
+      return;
+    }
+    $('appList').innerHTML = items.map(function (it, i) {
+      const ok = it.status === '신청완료';
+      const link = safeUrl(it.link);
+      let html = '<div class="app"><div class="app-top"><div class="app-name">' + escapeHtml(it.product) + '</div>' +
+        '<span class="badge ' + (ok ? 'ok' : 'wait') + '">' + escapeHtml(it.status) + '</span></div>';
+      if (ok && link) html += '<a class="buy" href="' + escapeHtml(link) + '" target="_blank" rel="noopener">구매하러 가기 ↗</a>';
+      if (ok) {
+        html += '<div class="steps">' +
+          step(i, 'review', it.review, it.review ? '제출 완료' : '아직 제출 전') +
+          step(i, 'receipt', it.receipt, it.receipt ? '제출 완료' + (it.buyDate ? ' · 구매일 ' + escapeHtml(it.buyDate) : '') : '아직 제출 전') +
+          '</div>';
+      } else {
+        html += '<div class="wait-text">선착순이 마감되어 대기 중이에요. 자리가 나면 신청완료로 바뀌고 제출할 수 있어요.</div>';
+      }
+      return html + '</div>';
+    }).join('');
+    $('appList').querySelectorAll('button[data-i]').forEach(function (b) {
+      b.onclick = function () { openUpload(items[Number(b.dataset.i)].product, b.dataset.kind); };
+    });
+  }
+
+  function step(i, kind, done, state) {
+    return '<div class="step"><div><div class="step-label">' + (done ? '✅ ' : '') + KINDS[kind].label + '</div>' +
+      '<div class="step-state' + (done ? ' done' : '') + '">' + state + '</div></div>' +
+      '<button type="button" class="' + (done ? 'again' : '') + '" data-i="' + i + '" data-kind="' + kind + '">' +
+      (done ? '다시 올리기' : '올리기') + '</button></div>';
   }
 
   function backToWho() {
@@ -302,26 +332,27 @@
     show('whoCard', true);
   }
 
-  function openReview(product) {
-    reviewTarget = product;
-    $('reviewProduct').textContent = product;
-    $('message').value = '';
-    $('msgCount').textContent = '0자';
-    $('s5').checked = true;
-    photoData = [];
+  // ---------- 업로드 ----------
+  function openUpload(product, kind) {
+    target = { product: product, kind: kind };
+    $('upProduct').textContent = product;
+    $('upKind').textContent = KINDS[kind].label + ' 제출';
+    $('upGuide').textContent = KINDS[kind].guide;
+    show('buyDateWrap', kind === 'receipt');
+    if (kind === 'receipt' && !$('buyDate').value) $('buyDate').value = today();
+    fileData = [];
     renderThumbs();
-    setMsg('reviewMsg', '');
-    busy($('reviewBtn'), false, '리뷰 제출');
+    setMsg('uploadMsg', '');
+    busy($('uploadBtn'), false, '제출하기');
     show('listCard', false);
-    show('reviewForm', true);
+    show('uploadForm', true);
     window.scrollTo(0, 0);
   }
 
-  // ---------- 리뷰: 사진 ----------
   const drop = $('drop');
-  $('photos').addEventListener('change', function (e) {
-    addPhotos(e.target.files);
-    e.target.value = ''; // 같은 사진 다시 선택 가능하도록
+  $('files').addEventListener('change', function (e) {
+    addFiles(e.target.files);
+    e.target.value = ''; // 같은 파일 다시 선택 가능하도록
   });
   ['dragenter', 'dragover'].forEach(function (t) {
     drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add('over'); });
@@ -329,91 +360,90 @@
   ['dragleave', 'drop'].forEach(function (t) {
     drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.remove('over'); });
   });
-  drop.addEventListener('drop', function (e) { addPhotos(e.dataTransfer.files); });
+  drop.addEventListener('drop', function (e) { addFiles(e.dataTransfer.files); });
   drop.addEventListener('click', function (e) {
-    if (photoData.length + photosLoading >= MAX_PHOTOS) {
+    if (fileData.length + filesLoading >= MAX_FILES) {
       e.preventDefault();
-      setMsg('reviewMsg', '사진은 최대 ' + MAX_PHOTOS + '장이에요. 기존 사진을 지우고 추가해 주세요.');
+      setMsg('uploadMsg', '이미지는 최대 ' + MAX_FILES + '장이에요. 기존 이미지를 지우고 추가해 주세요.');
     }
   });
 
-  async function addPhotos(fileList) {
-    setMsg('reviewMsg', '');
+  async function addFiles(fileList) {
+    setMsg('uploadMsg', '');
     const images = Array.from(fileList).filter(function (f) { return f.type.indexOf('image/') === 0; });
-    const room = Math.max(MAX_PHOTOS - photoData.length - photosLoading, 0);
-    if (images.length > room) setMsg('reviewMsg', '사진은 최대 ' + MAX_PHOTOS + '장이라 ' + room + '장만 추가했어요.');
+    const room = Math.max(MAX_FILES - fileData.length - filesLoading, 0);
+    if (images.length > room) setMsg('uploadMsg', '이미지는 최대 ' + MAX_FILES + '장이라 ' + room + '장만 추가했어요.');
     const files = images.slice(0, room);
-    photosLoading += files.length;
+    filesLoading += files.length;
     renderThumbs();
     for (const file of files) {
       try {
-        photoData.push(await resizeImage(file));
+        fileData.push(await resizeImage(file));
       } catch (err) {
-        setMsg('reviewMsg', '사진을 읽을 수 없어요: ' + file.name);
+        setMsg('uploadMsg', '이미지를 읽을 수 없어요: ' + file.name);
       }
-      photosLoading--;
+      filesLoading--;
       renderThumbs();
     }
   }
 
-  function removePhoto(i) {
-    photoData.splice(i, 1);
+  function removeFile(i) {
+    fileData.splice(i, 1);
     renderThumbs();
   }
 
   function renderThumbs() {
-    $('thumbs').innerHTML = photoData.map(function (p, i) {
+    $('thumbs').innerHTML = fileData.map(function (p, i) {
       return '<div class="thumb"><img src="data:image/jpeg;base64,' + p.data + '" alt="">' +
-        '<button type="button" class="x" onclick="removePhoto(' + i + ')">✕</button></div>';
-    }).join('') + '<div class="thumb loading">처리 중</div>'.repeat(photosLoading);
-    $('photoCount').textContent = photoData.length;
-    drop.classList.toggle('full', photoData.length + photosLoading >= MAX_PHOTOS);
+        '<button type="button" class="x" onclick="removeFile(' + i + ')">✕</button></div>';
+    }).join('') + '<div class="thumb loading">처리 중</div>'.repeat(filesLoading);
+    $('fileCount').textContent = fileData.length;
+    drop.classList.toggle('full', fileData.length + filesLoading >= MAX_FILES);
   }
 
-  // 업로드 용량을 줄이기 위해 긴 변 1280px JPEG로 축소
+  // 캡처 글씨가 읽히도록 긴 변 2000px JPEG로 축소
   function resizeImage(file) {
     return new Promise(function (resolve, reject) {
       const img = new Image();
       const url = URL.createObjectURL(file);
       img.onload = function () {
-        const r = Math.min(1, 1280 / Math.max(img.width, img.height));
+        const r = Math.min(1, 2000 / Math.max(img.width, img.height));
         const c = document.createElement('canvas');
         c.width = Math.round(img.width * r);
         c.height = Math.round(img.height * r);
-        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(img, 0, 0, c.width, c.height);
         URL.revokeObjectURL(url);
-        resolve({ data: c.toDataURL('image/jpeg', 0.85).split(',')[1] });
+        resolve({ data: c.toDataURL('image/jpeg', 0.88).split(',')[1] });
       };
       img.onerror = reject;
       img.src = url;
     });
   }
 
-  // ---------- 리뷰: 제출 ----------
-  async function submitReview() {
-    const message = $('message').value.trim();
-    const scoreEl = document.querySelector('input[name=score]:checked');
-    if (!scoreEl) return setMsg('reviewMsg', '별점을 선택해 주세요.');
-    if (message.length < MIN_MESSAGE) return setMsg('reviewMsg', '리뷰 내용을 ' + MIN_MESSAGE + '자 이상 적어 주세요.');
-    if (photosLoading) return setMsg('reviewMsg', '사진을 처리하는 중이에요. 잠시 후 다시 눌러 주세요.');
+  async function submitUpload() {
+    if (!fileData.length) return setMsg('uploadMsg', '이미지를 1장 이상 올려 주세요.');
+    if (filesLoading) return setMsg('uploadMsg', '이미지를 처리하는 중이에요. 잠시 후 다시 눌러 주세요.');
+    const buyDate = $('buyDate').value;
+    if (target.kind === 'receipt' && !buyDate) return setMsg('uploadMsg', '구매일을 선택해 주세요.');
 
-    const btn = $('reviewBtn');
-    busy(btn, true, photoData.length ? '사진 업로드 중... (' + photoData.length + '장)' : '제출 중...');
-    setMsg('reviewMsg', '');
+    const btn = $('uploadBtn');
+    busy(btn, true, '업로드 중... (' + fileData.length + '장)');
+    setMsg('uploadMsg', '');
     try {
-      await api('review', {
-        product: reviewTarget,
-        name: $('revName').value.trim(),
-        score: Number(scoreEl.value),
-        message: message,
-        photos: photoData,
+      await api('submit', {
+        name: $('whoName').value.trim(),
+        product: target.product,
+        kind: target.kind,
+        buyDate: target.kind === 'receipt' ? buyDate : '',
+        files: fileData,
       });
-      show('reviewForm', false);
-      show('doneCard', true);
-      window.scrollTo(0, 0);
+      await loadList();
     } catch (e) {
-      setMsg('reviewMsg', e.message);
-      busy(btn, false, '리뷰 제출');
+      setMsg('uploadMsg', e.message);
+      busy(btn, false, '제출하기');
     }
   }
 </script>

@@ -84,6 +84,30 @@
   .thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; display: block; }
   .thumb .x { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; background: var(--text); color: #fff; font-size: 12px; line-height: 22px; cursor: pointer; }
   .thumb.loading { background: #edf1ef; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--muted); }
+  /* 신청 결과 */
+  .result { position: relative; overflow: hidden; text-align: center; padding: 36px 20px 24px; }
+  .result.win { background: linear-gradient(180deg, #e3f3ec 0%, #ffffff 62%); }
+  .r-icon { font-size: 52px; line-height: 1; }
+  .result.win .r-icon { animation: pop .5s cubic-bezier(.2, 1.6, .4, 1) both; }
+  .r-title { font-size: 34px; font-weight: 800; letter-spacing: -.02em; margin-top: 10px; }
+  .result.win .r-title { color: var(--accent); }
+  .result.wait .r-title { font-size: 24px; color: var(--warn); }
+  .r-product { display: inline-block; margin-top: 12px; padding: 6px 14px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); font-size: 15px; font-weight: 700; }
+  .r-text { color: var(--muted); font-size: 15px; line-height: 1.6; margin: 14px 0 0; }
+  .confetti { display: none; }
+  .result.win .confetti { display: block; position: absolute; inset: 0; pointer-events: none; }
+  .confetti i { position: absolute; top: -12px; width: 8px; height: 14px; border-radius: 2px; opacity: 0; animation: fall 1.8s ease-out forwards; }
+  .confetti i:nth-child(1) { left: 8%;  background: #1f6b55; animation-delay: .05s; }
+  .confetti i:nth-child(2) { left: 20%; background: #f2b01e; animation-delay: .25s; }
+  .confetti i:nth-child(3) { left: 33%; background: #e5677d; animation-delay: .1s; }
+  .confetti i:nth-child(4) { left: 46%; background: #4a90d9; animation-delay: .35s; }
+  .confetti i:nth-child(5) { left: 58%; background: #1f6b55; animation-delay: .15s; }
+  .confetti i:nth-child(6) { left: 70%; background: #f2b01e; animation-delay: .3s; }
+  .confetti i:nth-child(7) { left: 82%; background: #e5677d; animation-delay: .2s; }
+  .confetti i:nth-child(8) { left: 92%; background: #4a90d9; animation-delay: .4s; }
+  @keyframes pop { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes fall { 0% { opacity: 1; transform: translateY(0) rotate(0); } 100% { opacity: 0; transform: translateY(260px) rotate(320deg); } }
+  @media (prefers-reduced-motion: reduce) { .result.win .r-icon, .confetti i { animation: none; } }
   .hidden { display: none !important; }
 </style>
 </head>
@@ -113,10 +137,20 @@
       <div class="hint">선착순 안에 들면 바로 <b>당첨</b>! 마감 후 신청은 대기로 접수되고, 자리가 나면 순서대로 자동 당첨돼요.</div>
       <button class="btn" type="button" id="applyBtn" onclick="submitApply()">신청하기</button>
       <div class="msg" id="applyMsg"></div>
-      <div class="hidden" id="buyWrap">
-        <a class="btn" id="buyBtn" href="#" target="_blank" rel="noopener" style="margin-top:12px">🛒 구매하러 가기</a>
+    </div>
+
+    <!-- 신청 결과: 당첨 / 대기 -->
+    <div class="card result hidden" id="resultCard">
+      <div class="confetti" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="r-icon" id="rIcon">🎉</div>
+      <div class="r-title" id="rTitle">당첨!</div>
+      <div class="r-product" id="rProduct"></div>
+      <p class="r-text" id="rText"></p>
+      <div id="rBuyWrap">
+        <a class="btn" id="buyBtn" href="#" target="_blank" rel="noopener">🛒 지금 구매하러 가기</a>
         <div class="hint" style="text-align:center">구매 후 <b>체험 인증</b> 탭에서 구매 인증과 리뷰 인증을 해주세요.</div>
       </div>
+      <button class="btn ghost hidden" type="button" id="rAgain" onclick="backToApply()">다른 상품 신청하기</button>
     </div>
   </section>
 
@@ -245,8 +279,10 @@
           '<label for="p' + i + '"><div><div class="opt-name">' + escapeHtml(p.name) + '</div>' +
           '<div class="opt-sub' + (p.remaining === 0 ? ' full' : '') + '">' + sub + '</div></div></label>';
       }).join('');
+      openProducts = d.products.map(function (p) { return p.name; });
       show('applyClosed', false);
       show('applyForm', true);
+      showExistingWin();
     }).catch(function (e) {
       $('closedTitle').textContent = '페이지를 불러오지 못했어요';
       $('closedText').textContent = e.message;
@@ -254,6 +290,8 @@
   })();
 
   // ---------- 신청 ----------
+  let openProducts = [];
+
   async function submitApply() {
     const picked = document.querySelector('input[name=product]:checked');
     const name = $('applyName').value.trim();
@@ -262,20 +300,54 @@
     const btn = $('applyBtn');
     busy(btn, true, '신청 중...');
     setMsg('applyMsg', '');
-    show('buyWrap', false);
     try {
       const d = await api('apply', { product: picked.value, name: name });
       rememberName(name);
-      setMsg('applyMsg', d.message, true);
-      const link = safeUrl(d.link || '');
-      if (link) {
-        $('buyBtn').href = link;
-        show('buyWrap', true);
-      }
+      showResult(picked.value, d.status, d.link);
     } catch (e) {
       setMsg('applyMsg', e.message);
     }
     busy(btn, false, '신청하기');
+  }
+
+  /** 신청 폼 대신 결과 화면: 당첨이면 축하 + 구매 버튼, 대기면 안내 */
+  function showResult(product, status, link) {
+    const win = status === '신청완료';
+    const card = $('resultCard');
+    card.classList.remove('win', 'wait');
+    void card.offsetWidth; // 애니메이션 다시 재생
+    card.classList.add(win ? 'win' : 'wait');
+    $('rIcon').textContent = win ? '🎉' : '⏳';
+    $('rTitle').textContent = win ? '당첨!' : '대기 접수';
+    $('rProduct').textContent = product;
+    $('rText').innerHTML = win
+      ? '축하해요! 선착순 안에 들었어요.<br>아래 버튼으로 바로 구매해 주세요.'
+      : '선착순이 마감되어 대기로 접수됐어요.<br>자리가 나면 신청 순서대로 자동 당첨돼요.';
+    const url = safeUrl(link || '');
+    if (url) $('buyBtn').href = url;
+    show('rBuyWrap', win && !!url);
+    show('rAgain', openProducts.length > 1);
+    show('applyForm', false);
+    show('resultCard', true);
+    window.scrollTo(0, 0);
+  }
+
+  function backToApply() {
+    setMsg('applyMsg', '');
+    show('resultCard', false);
+    show('applyForm', true);
+  }
+
+  /** 이 기기에서 신청했던 사람이 다시 들어오면, 아직 구매 전인 당첨 상품을 바로 보여줌 */
+  function showExistingWin() {
+    const name = store('erv_name');
+    if (!name) return;
+    api('status', { name: name }).then(function (d) {
+      const won = d.items.filter(function (it) {
+        return it.status === '신청완료' && it.link && openProducts.indexOf(it.product) >= 0;
+      })[0];
+      if (won && !$('applyForm').classList.contains('hidden')) showResult(won.product, won.status, won.link);
+    }).catch(function () { /* 조회 실패 시 신청 폼 그대로 */ });
   }
 
   // ---------- 내 신청 내역 ----------

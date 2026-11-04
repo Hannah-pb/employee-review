@@ -58,7 +58,6 @@
   .badge { font-size: 12px; font-weight: 700; padding: 4px 9px; border-radius: 999px; white-space: nowrap; }
   .badge.ok { color: var(--accent); background: var(--accent-weak); }
   .badge.wait { color: var(--warn); background: var(--warn-weak); }
-  .buy { display: inline-block; margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--accent); text-decoration: none; }
   .steps { margin-top: 12px; border-top: 1px solid var(--line); }
   .step { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 0 0; }
   .step-label { font-size: 14px; font-weight: 600; }
@@ -113,6 +112,10 @@
       <div class="hint">선착순 안에 들면 바로 <b>신청완료</b>가 되고, 마감 후 신청은 대기로 접수돼요.</div>
       <button class="btn" type="button" id="applyBtn" onclick="submitApply()">신청하기</button>
       <div class="msg" id="applyMsg"></div>
+      <div class="hidden" id="buyWrap">
+        <a class="btn" id="buyBtn" href="#" target="_blank" rel="noopener" style="margin-top:12px">🛒 구매하러 가기</a>
+        <div class="hint" style="text-align:center">구매 후 <b>리뷰·영수증 제출</b> 탭에서 리뷰 캡처와 영수증을 올려 주세요.</div>
+      </div>
     </div>
   </section>
 
@@ -258,10 +261,16 @@
     const btn = $('applyBtn');
     busy(btn, true, '신청 중...');
     setMsg('applyMsg', '');
+    show('buyWrap', false);
     try {
       const d = await api('apply', { product: picked.value, name: name });
       rememberName(name);
       setMsg('applyMsg', d.message, true);
+      const link = safeUrl(d.link || '');
+      if (link) {
+        $('buyBtn').href = link;
+        show('buyWrap', true);
+      }
     } catch (e) {
       setMsg('applyMsg', e.message);
     }
@@ -301,10 +310,8 @@
     }
     $('appList').innerHTML = items.map(function (it, i) {
       const ok = it.status === '신청완료';
-      const link = safeUrl(it.link);
       let html = '<div class="app"><div class="app-top"><div class="app-name">' + escapeHtml(it.product) + '</div>' +
         '<span class="badge ' + (ok ? 'ok' : 'wait') + '">' + escapeHtml(it.status) + '</span></div>';
-      if (ok && link) html += '<a class="buy" href="' + escapeHtml(link) + '" target="_blank" rel="noopener">구매하러 가기 ↗</a>';
       if (ok) {
         html += '<div class="steps">' +
           step(i, 'review', it.review, it.review ? '제출 완료' : '아직 제출 전') +

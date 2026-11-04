@@ -282,7 +282,6 @@
       openProducts = d.products.map(function (p) { return p.name; });
       show('applyClosed', false);
       show('applyForm', true);
-      showExistingWin();
     }).catch(function (e) {
       $('closedTitle').textContent = '페이지를 불러오지 못했어요';
       $('closedText').textContent = e.message;
@@ -336,18 +335,6 @@
     setMsg('applyMsg', '');
     show('resultCard', false);
     show('applyForm', true);
-  }
-
-  /** 이 기기에서 신청했던 사람이 다시 들어오면, 아직 구매 전인 당첨 상품을 바로 보여줌 */
-  function showExistingWin() {
-    const name = store('erv_name');
-    if (!name) return;
-    api('status', { name: name }).then(function (d) {
-      const won = d.items.filter(function (it) {
-        return it.status === '신청완료' && it.link && openProducts.indexOf(it.product) >= 0;
-      })[0];
-      if (won && !$('applyForm').classList.contains('hidden')) showResult(won.product, won.status, won.link);
-    }).catch(function () { /* 조회 실패 시 신청 폼 그대로 */ });
   }
 
   // ---------- 내 신청 내역 ----------

@@ -65,6 +65,7 @@
   .step-state.done { color: var(--accent); font-weight: 600; }
   .step button { border: 0; background: var(--accent); color: #fff; border-radius: 10px; padding: 9px 14px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
   .step button.again { background: var(--card); color: var(--muted); border: 1px solid var(--line); font-weight: 600; }
+  .btn.buy { margin-top: 12px; padding: 12px; font-size: 15px; }
   .wait-text { font-size: 13px; color: var(--muted); margin-top: 10px; line-height: 1.5; }
 
   /* 업로드 */
@@ -96,7 +97,7 @@
 
   <div class="tabs">
     <button type="button" id="tabApply" class="on" onclick="showTab('apply')">제품 신청</button>
-    <button type="button" id="tabSubmit" onclick="showTab('submit')">리뷰·영수증 제출</button>
+    <button type="button" id="tabSubmit" onclick="showTab('submit')">체험 인증</button>
   </div>
 
   <!-- 신청 -->
@@ -109,12 +110,12 @@
       <div class="options" id="productOptions"></div>
       <label class="f">이름 (실명) <span class="req">*</span></label>
       <input type="text" id="applyName" autocomplete="name">
-      <div class="hint">선착순 안에 들면 바로 <b>신청완료</b>가 되고, 마감 후 신청은 대기로 접수돼요.</div>
+      <div class="hint">선착순 안에 들면 바로 <b>당첨</b>! 마감 후 신청은 대기로 접수되고, 자리가 나면 순서대로 자동 당첨돼요.</div>
       <button class="btn" type="button" id="applyBtn" onclick="submitApply()">신청하기</button>
       <div class="msg" id="applyMsg"></div>
       <div class="hidden" id="buyWrap">
         <a class="btn" id="buyBtn" href="#" target="_blank" rel="noopener" style="margin-top:12px">🛒 구매하러 가기</a>
-        <div class="hint" style="text-align:center">구매 후 <b>리뷰·영수증 제출</b> 탭에서 리뷰 캡처와 영수증을 올려 주세요.</div>
+        <div class="hint" style="text-align:center">구매 후 <b>체험 인증</b> 탭에서 구매 인증과 리뷰 인증을 해주세요.</div>
       </div>
     </div>
   </section>
@@ -131,7 +132,7 @@
 
     <div class="card hidden" id="listCard">
       <div class="card-title">내 신청 내역</div>
-      <div class="hint" style="margin-top:0">리뷰 캡처와 영수증은 순서 상관없이 제출할 수 있어요.</div>
+      <div class="hint" style="margin-top:0">구매 인증과 리뷰 인증은 순서 상관없이 할 수 있어요.</div>
       <div id="appList"></div>
       <button class="btn ghost" type="button" onclick="backToWho()">다른 이름으로 조회</button>
     </div>
@@ -152,7 +153,7 @@
           <div class="s">탭해서 촬영·앨범 선택 / PC는 끌어다 놓기</div>
         </label>
         <div class="thumbs" id="thumbs"></div>
-        <button class="btn" type="button" id="uploadBtn" onclick="submitUpload()">제출하기</button>
+        <button class="btn" type="button" id="uploadBtn" onclick="submitUpload()">인증하기</button>
         <button class="btn ghost" type="button" onclick="loadList()">목록으로</button>
         <div class="msg" id="uploadMsg"></div>
       </div>
@@ -165,8 +166,8 @@
   const API_URL = 'https://script.google.com/macros/s/AKfycbx858_nPeecvyNvWzOtk3nafQDAOecitgTd-gkgKdVJc5x3QRLHUs-Jye9bHGhuZ0E/exec';
   const MAX_FILES = 3;
   const KINDS = {
-    review: { label: '리뷰 캡처', guide: '스마트스토어에 작성한 내 리뷰가 보이도록 캡처해서 올려 주세요.' },
-    receipt: { label: '영수증', guide: '주문 상세(결제 내역) 화면 캡처나 영수증 사진을 올려 주세요.' },
+    receipt: { label: '구매 인증', guide: '주문 상세(결제 내역) 화면 캡처나 영수증 사진을 올려 주세요.' },
+    review: { label: '리뷰 인증', guide: '스마트스토어에 작성한 내 리뷰가 보이도록 캡처해서 올려 주세요.' },
   };
 
   let target = null; // { product, kind }
@@ -234,7 +235,7 @@
     api('info').then(function (d) {
       if (!d.products.length) {
         $('closedTitle').textContent = '지금은 신청 중인 상품이 없어요';
-        $('closedText').textContent = '이미 신청하셨다면 리뷰·영수증 제출 탭을 이용해 주세요.';
+        $('closedText').textContent = '이미 신청하셨다면 체험 인증 탭을 이용해 주세요.';
         return;
       }
       $('productOptions').innerHTML = d.products.map(function (p, i) {
@@ -311,14 +312,16 @@
     $('appList').innerHTML = items.map(function (it, i) {
       const ok = it.status === '신청완료';
       let html = '<div class="app"><div class="app-top"><div class="app-name">' + escapeHtml(it.product) + '</div>' +
-        '<span class="badge ' + (ok ? 'ok' : 'wait') + '">' + escapeHtml(it.status) + '</span></div>';
+        '<span class="badge ' + (ok ? 'ok' : 'wait') + '">' + (ok ? '당첨' : escapeHtml(it.status)) + '</span></div>';
+      const link = safeUrl(it.link || '');
+      if (ok && link) html += '<a class="btn buy" href="' + escapeHtml(link) + '" target="_blank" rel="noopener">🛒 구매하러 가기</a>';
       if (ok) {
         html += '<div class="steps">' +
-          step(i, 'review', it.review, it.review ? '제출 완료' : '아직 제출 전') +
-          step(i, 'receipt', it.receipt, it.receipt ? '제출 완료' + (it.buyDate ? ' · 구매일 ' + escapeHtml(it.buyDate) : '') : '아직 제출 전') +
+          step(i, 'receipt', it.receipt, it.receipt ? '인증 완료' + (it.buyDate ? ' · 구매일 ' + escapeHtml(it.buyDate) : '') : '아직 인증 전') +
+          step(i, 'review', it.review, it.review ? '인증 완료' : '아직 인증 전') +
           '</div>';
       } else {
-        html += '<div class="wait-text">선착순이 마감되어 대기 중이에요. 자리가 나면 신청완료로 바뀌고 제출할 수 있어요.</div>';
+        html += '<div class="wait-text">선착순이 마감되어 대기 중이에요. 자리가 나면 신청 순서대로 자동 당첨돼요.</div>';
       }
       return html + '</div>';
     }).join('');
@@ -331,7 +334,7 @@
     return '<div class="step"><div><div class="step-label">' + (done ? '✅ ' : '') + KINDS[kind].label + '</div>' +
       '<div class="step-state' + (done ? ' done' : '') + '">' + state + '</div></div>' +
       '<button type="button" class="' + (done ? 'again' : '') + '" data-i="' + i + '" data-kind="' + kind + '">' +
-      (done ? '다시 올리기' : '올리기') + '</button></div>';
+      (done ? '다시 올리기' : '인증하기') + '</button></div>';
   }
 
   function backToWho() {
@@ -343,14 +346,14 @@
   function openUpload(product, kind) {
     target = { product: product, kind: kind };
     $('upProduct').textContent = product;
-    $('upKind').textContent = KINDS[kind].label + ' 제출';
+    $('upKind').textContent = KINDS[kind].label;
     $('upGuide').textContent = KINDS[kind].guide;
     show('buyDateWrap', kind === 'receipt');
     if (kind === 'receipt' && !$('buyDate').value) $('buyDate').value = today();
     fileData = [];
     renderThumbs();
     setMsg('uploadMsg', '');
-    busy($('uploadBtn'), false, '제출하기');
+    busy($('uploadBtn'), false, '인증하기');
     show('listCard', false);
     show('uploadForm', true);
     window.scrollTo(0, 0);
@@ -450,7 +453,7 @@
       await loadList();
     } catch (e) {
       setMsg('uploadMsg', e.message);
-      busy(btn, false, '제출하기');
+      busy(btn, false, '인증하기');
     }
   }
 </script>

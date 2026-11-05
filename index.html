@@ -67,6 +67,9 @@
   .step button { border: 0; background: var(--accent); color: #fff; border-radius: 10px; padding: 9px 14px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap; }
   .step button.again { background: var(--card); color: var(--muted); border: 1px solid var(--line); font-weight: 600; }
   .btn.buy { margin-top: 12px; padding: 12px; font-size: 15px; }
+  .price-note { display: flex; gap: 8px; align-items: flex-start; text-align: left; margin-top: 18px; padding: 12px 14px; border-radius: 12px; background: var(--warn-weak); color: var(--warn); font-size: 14px; line-height: 1.5; }
+  .price-note b { color: #6b4b00; }
+  .app .price-note { margin-top: 12px; }
   .wait-text { font-size: 13px; color: var(--muted); margin-top: 10px; line-height: 1.5; }
 
   /* 업로드 */
@@ -148,6 +151,7 @@
       <div class="r-product" id="rProduct"></div>
       <p class="r-text" id="rText"></p>
       <div id="rBuyWrap">
+        <div class="price-note hidden" id="rPrice"></div>
         <a class="btn" id="buyBtn" href="#" target="_blank" rel="noopener">🛒 지금 구매하러 가기</a>
         <div class="hint" style="text-align:center">구매 후 <b>체험 인증</b> 탭에서 구매 인증과 리뷰 인증을 해주세요.</div>
       </div>
@@ -244,6 +248,16 @@
     });
   }
 
+  /** 39000 → "39,000원" (숫자가 아니면 적힌 그대로) */
+  function formatPrice(v) {
+    const n = Number(String(v).replace(/[,원s]/g, ''));
+    return n ? n.toLocaleString('ko-KR') + '원' : String(v);
+  }
+
+  function priceNote(price) {
+    return '<span>⚠️</span><span>쿠폰을 사용하지 말고, <b>' + escapeHtml(formatPrice(price)) + '</b>으로 구매해 주세요.</span>';
+  }
+
   function safeUrl(u) { return /^https?:\/\//.test(u) ? u : ''; }
 
   function showTab(tab) {
@@ -303,7 +317,7 @@
     try {
       const d = await api('apply', { product: picked.value, name: name });
       rememberName(name);
-      showResult(picked.value, d.status, d.link);
+      showResult(picked.value, d.status, d.link, d.price);
     } catch (e) {
       setMsg('applyMsg', e.message);
     }
@@ -311,7 +325,7 @@
   }
 
   /** 신청 폼 대신 결과 화면: 당첨이면 축하 + 구매 버튼, 대기면 안내 */
-  function showResult(product, status, link) {
+  function showResult(product, status, link, price) {
     const win = status === '신청완료';
     const card = $('resultCard');
     card.classList.remove('win', 'wait');
@@ -324,6 +338,8 @@
       ? '축하해요! 선착순 안에 들었어요.<br>아래 버튼으로 바로 구매해 주세요.'
       : '선착순이 마감되어 대기로 접수됐어요.<br>자리가 나면 신청 순서대로 자동 당첨돼요.';
     const url = safeUrl(link || '');
+    $('rPrice').innerHTML = priceNote(price);
+    show('rPrice', !!price);
     if (url) $('buyBtn').href = url;
     show('rBuyWrap', win && !!url);
     show('rAgain', openProducts.length > 1);
@@ -374,7 +390,10 @@
       let html = '<div class="app"><div class="app-top"><div class="app-name">' + escapeHtml(it.product) + '</div>' +
         '<span class="badge ' + (ok ? 'ok' : 'wait') + '">' + (ok ? '당첨' : escapeHtml(it.status)) + '</span></div>';
       const link = safeUrl(it.link || '');
-      if (ok && link) html += '<a class="btn buy" href="' + escapeHtml(link) + '" target="_blank" rel="noopener">🛒 구매하러 가기</a>';
+      if (ok && link) {
+        if (it.price) html += '<div class="price-note">' + priceNote(it.price) + '</div>';
+        html += '<a class="btn buy" href="' + escapeHtml(link) + '" target="_blank" rel="noopener">🛒 구매하러 가기</a>';
+      }
       if (ok) {
         html += '<div class="steps">' +
           step(i, 'receipt', it.receipt, it.receipt ? '인증 완료' + (it.buyDate ? ' · 구매일 ' + escapeHtml(it.buyDate) : '') : '아직 인증 전') +

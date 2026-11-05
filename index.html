@@ -216,13 +216,6 @@
   // ---------- 공통 ----------
   const $ = function (id) { return document.getElementById(id); };
 
-  function store(key, val) {
-    try {
-      if (val === undefined) return localStorage.getItem(key) || '';
-      localStorage.setItem(key, val);
-    } catch (e) { return ''; }
-  }
-
   async function api(action, data) {
     const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(Object.assign({ action: action }, data || {})) });
     const json = await res.json();
@@ -267,8 +260,8 @@
     show('submitView', tab === 'submit');
   }
 
+  /** 신청 탭에 쓴 이름을 체험 인증 탭에도 채워줌 (이번 화면에서만 — 기기에 저장하지 않음) */
   function rememberName(name) {
-    store('erv_name', name);
     ['applyName', 'whoName'].forEach(function (id) { if (!$(id).value) $(id).value = name; });
   }
 
@@ -279,8 +272,6 @@
 
   // ---------- 초기 로딩 ----------
   (function init() {
-    $('applyName').value = $('whoName').value = store('erv_name');
-
     api('info').then(function (d) {
       if (!d.products.length) {
         $('closedTitle').textContent = '지금은 신청 중인 상품이 없어요';
